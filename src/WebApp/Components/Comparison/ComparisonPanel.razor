@@ -5,6 +5,25 @@
 @inject IProductImageUrlProvider ProductImages
 @inject ILogger<ComparisonPanel> Logger
 
+@if (Shortlist.CanCompare)
+{
+    <div class="product-budget">
+        <label for="product-budget">Budget per product ($)</label>
+        <input id="product-budget" type="text" inputmode="decimal" autocomplete="off" placeholder="100.00"
+               value="@budgetText" @oninput="OnBudgetInput"
+               aria-invalid="@(budget.ValidationMessage is not null ? "true" : "false")"
+               aria-describedby="@(budget.ValidationMessage is not null ? "budget-help budget-error" : "budget-help")" />
+        <p id="budget-help">Optional: compare each product against this amount, not a combined total. Use a dot for cents, without commas or a currency symbol.</p>
+        @if (budget.ValidationMessage is not null)
+        {
+            <p id="budget-error" class="budget-error" role="alert">@budget.ValidationMessage</p>
+        }
+        <p class="budget-summary" role="status" aria-live="polite">@(budget.Amount is decimal amount
+            ? $"Checking each product against a ${amount.ToPriceDisplay()} budget."
+            : "Enter a valid budget to see which products fit.")</p>
+    </div>
+}
+
 @if (!Shortlist.IsInitialized)
 {
     <p role="status">@(message ?? "Loading your selections...")</p>
@@ -85,6 +104,20 @@ else
                         <td @key="product.Id">@product.PriceDisplay</td>
                     }
                 </tr>
+                @if (budget.Amount is not null)
+                {
+                    <tr>
+                        <th scope="row">Budget comparison</th>
+                        @foreach (var product in products)
+                        {
+                            var assessment = budget.Assess(product.Item?.Price);
+                            <td @key="product.Id">
+                                <strong>@assessment?.StatusDisplay</strong>
+                                <span class="budget-difference">@assessment?.DifferenceDisplay</span>
+                            </td>
+                        }
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
@@ -93,6 +126,8 @@ else
 @code {
     private IReadOnlyList<ComparedProduct> products = Array.Empty<ComparedProduct>();
     private readonly HashSet<int> failedImages = [];
+    private readonly ProductBudget budget = new();
+    private string budgetText = "";
     private bool loading = true;
     private bool subscribed;
     private bool disposed;
@@ -187,6 +222,12 @@ else
     }
 
     private void MarkImageUnavailable(int id) => failedImages.Add(id);
+
+    private void OnBudgetInput(ChangeEventArgs args)
+    {
+        budgetText = args.Value?.ToString() ?? "";
+        budget.SetInput(budgetText);
+    }
 
     private void OnShortlistChanged()
     {

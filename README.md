@@ -117,7 +117,17 @@ to select next. The comparison table scrolls horizontally on narrow screens and
 can be focused with the keyboard. **Back to catalog** preserves catalog filters
 and pagination when the comparison was opened from a filtered catalog page.
 
-Budget checks are planned for the next milestone and are not available yet.
+Enter an optional **Budget per product ($)** on the comparison page. Results update
+as you type, showing **Within budget** (including prices exactly equal to the
+budget) or **Over budget**, together with the amount under or over. This is an
+individual-product budget, not a combined total.
+
+Use a non-negative dollar amount with at most two decimal places, such as `100`
+or `100.50`; zero is valid. Invalid entries show an explanation and hide prior
+budget results rather than displaying stale affordability. Clearing the input
+removes the budget comparison. Products with unavailable or invalid prices cannot
+be classified as affordable. The budget is local to the current comparison page;
+only shortlist selections persist across navigation and reloads.
 
 ### Optional: AI Chatbot with Microsoft Foundry
 
