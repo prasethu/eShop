@@ -203,6 +203,39 @@ public sealed class ProductShortlistTests
     private static ProductShortlist CreateShortlist(SessionStorageFake storage) =>
         new(storage, NullLogger<ProductShortlist>.Instance);
 
+    [TestMethod]
+    public async Task SetSelectedAsync_TrayRemoval_RestoresRemainingSelectionsAfterNavigation()
+    {
+        var storage = new SessionStorageFake { Stored = "[12,34,56]" };
+        using (var traySession = CreateShortlist(storage))
+        {
+            await traySession.SetSelectedAsync(34, false);
+        }
+
+        using var nextPage = CreateShortlist(storage);
+        await nextPage.InitializeAsync();
+
+        Assert.AreEqual("12,56", string.Join(',', nextPage.SelectedIds));
+        Assert.DoesNotContain(34, nextPage.SelectedIds);
+        Assert.AreEqual("[12,56]", storage.Stored);
+    }
+
+    [TestMethod]
+    public async Task SetSelectedAsync_SeparateBrowserSessions_DoesNotShareSelections()
+    {
+        var firstStorage = new SessionStorageFake();
+        var secondStorage = new SessionStorageFake();
+        using var firstSession = CreateShortlist(firstStorage);
+        using var secondSession = CreateShortlist(secondStorage);
+
+        await firstSession.SetSelectedAsync(12, true);
+        await secondSession.InitializeAsync();
+
+        Assert.Contains(12, firstSession.SelectedIds);
+        Assert.IsEmpty(secondSession.SelectedIds);
+        Assert.IsNull(secondStorage.Stored);
+    }
+
     private sealed class SessionStorageFake : IJSRuntime
     {
         public string? Stored { get; set; }

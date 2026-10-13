@@ -102,8 +102,15 @@ Selections are stored in browser session storage for the current tab and survive
 catalog navigation and reloads. Browser session storage must be available; failures
 are reported rather than presenting unsaved selections as successful.
 
-The shortlist tray, side-by-side comparison, and budget checks are planned for
-subsequent milestones and are not available yet.
+The **Your shortlist** tray appears below the page header throughout the storefront.
+It shows selected product names in selection order, a count, removal controls, and
+guidance about how many products are needed to compare. Use the product links to
+open details; changing pages or filters does not remove hidden selections. Removing
+a product in the tray also updates its visible catalog selection button. If product
+information cannot be loaded, the tray preserves selections and offers a retry.
+
+Side-by-side comparison and budget checks are planned for subsequent milestones
+and are not available yet.
 
 ### Optional: AI Chatbot with Microsoft Foundry
 

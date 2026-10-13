@@ -22,6 +22,8 @@ public static class Extensions
         // Application services
         builder.Services.AddScoped<BasketState>();
         builder.Services.AddScoped<ProductShortlist>();
+        builder.Services.AddScoped<ShortlistCatalog>();
+        builder.Services.AddScoped<ICatalogService>(services => services.GetRequiredService<CatalogService>());
         builder.Services.AddScoped<LogOutService>();
         builder.Services.AddSingleton<BasketService>();
         builder.Services.AddSingleton<OrderStatusNotificationService>();

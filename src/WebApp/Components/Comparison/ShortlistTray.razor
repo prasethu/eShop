@@ -1,0 +1,212 @@
+@using System.Text.Json
+@using eShop.WebAppComponents.Item
+@implements IDisposable
+@inject ProductShortlist Shortlist
+@inject ShortlistCatalog Catalog
+@inject ILogger<ShortlistTray> Logger
+
+<section class="shortlist-tray" aria-labelledby="shortlist-heading" aria-busy="@(!Shortlist.IsInitialized || loading ? "true" : "false")">
+    <div class="shortlist-heading">
+        <h2 id="shortlist-heading">Your shortlist</h2>
+        @if (Shortlist.IsInitialized)
+        {
+            <span>@Shortlist.SelectedIds.Count of @ProductShortlist.MaximumProducts selected</span>
+        }
+    </div>
+
+    @if (!Shortlist.IsInitialized)
+    {
+        <p role="status">@(message ?? "Loading your shortlist...")</p>
+        @if (message is not null)
+        {
+            <button type="button" class="shortlist-action" @onclick="InitializeAsync">Retry shortlist</button>
+        }
+    }
+    else
+    {
+        @if (Shortlist.SelectedIds.Count > 0)
+        {
+            <ul class="shortlist-products">
+                @foreach (var id in Shortlist.SelectedIds)
+                {
+                    var product = products.FirstOrDefault(product => product.Id == id);
+                    var name = product?.DisplayName ?? $"Product {id}";
+                    <li @key="id">
+                        <div class="shortlist-product-name">
+                            @if (product?.Item is { } item)
+                            {
+                                <a href="@ItemHelper.Url(item)" data-enhance-nav="false">@name</a>
+                            }
+                            else
+                            {
+                                <span>@name</span>
+                                <small>@(loading ? "Loading product information..." : loadFailed ? "Product information could not be loaded." : "Product information unavailable.")</small>
+                            }
+                        </div>
+                        <button type="button" class="shortlist-action" aria-label="Remove @name from shortlist"
+                                disabled="@(removingId is not null)" @onclick="() => RemoveAsync(id, name)">Remove</button>
+                    </li>
+                }
+            </ul>
+        }
+        <p class="shortlist-guidance">
+            @switch (Shortlist.SelectedIds.Count)
+            {
+                case 0:
+                    <text>Select up to three products from the catalog to build your shortlist.</text>
+                    break;
+                case 1:
+                    <text>Select at least one more product for a side-by-side comparison.</text>
+                    break;
+                default:
+                    <text>You have enough products for a side-by-side comparison. The comparison view is coming next.</text>
+                    break;
+            }
+        </p>
+        <p class="shortlist-feedback" role="status" aria-live="polite">@(message ?? Shortlist.RecoveryMessage)</p>
+        @if (loadFailed)
+        {
+            <button type="button" class="shortlist-action" disabled="@loading" @onclick="RefreshAsync">Retry product information</button>
+        }
+    }
+</section>
+
+@code {
+    private IReadOnlyList<ShortlistedProduct> products = Array.Empty<ShortlistedProduct>();
+    private bool loading;
+    private bool loadFailed;
+    private bool subscribed;
+    private bool disposed;
+    private int requestVersion;
+    private int? removingId;
+    private string? message;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeAsync();
+        }
+    }
+
+    private async Task InitializeAsync()
+    {
+        message = null;
+        try
+        {
+            await Shortlist.InitializeAsync();
+            if (!disposed && !subscribed)
+            {
+                Shortlist.Changed += OnShortlistChanged;
+                subscribed = true;
+            }
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Could not restore the shortlist tray from browser session storage.");
+            message = "Your shortlist could not be loaded. Allow browser session storage and retry.";
+        }
+
+        if (!disposed)
+        {
+            if (Shortlist.IsInitialized)
+            {
+                await RefreshAsync();
+            }
+            else
+            {
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        var version = ++requestVersion;
+        var ids = Shortlist.SelectedIds.ToArray();
+        loading = true;
+        loadFailed = false;
+        message = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await Catalog.GetProductsAsync(ids);
+            if (!disposed && version == requestVersion && ids.SequenceEqual(Shortlist.SelectedIds))
+            {
+                products = result;
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            ReportLoadFailure(ex, version);
+        }
+        catch (JsonException ex)
+        {
+            ReportLoadFailure(ex, version);
+        }
+        finally
+        {
+            if (!disposed && version == requestVersion)
+            {
+                loading = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void ReportLoadFailure(Exception ex, int version)
+    {
+        Logger.LogError(ex, "Could not load product information for the shortlist tray.");
+        if (!disposed && version == requestVersion)
+        {
+            loadFailed = true;
+            message = "Product information could not be loaded. Your selections are preserved; you can still remove them or retry.";
+        }
+    }
+
+    private async Task RemoveAsync(int id, string name)
+    {
+        removingId = id;
+        try
+        {
+            var result = await Shortlist.SetSelectedAsync(id, false);
+            if (result == ShortlistChange.Removed)
+            {
+                message = $"{name} removed from your shortlist.";
+            }
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Could not remove a product from the saved shortlist.");
+            message = "The product could not be removed. Your selections have not changed. Allow browser session storage and try again.";
+        }
+        finally
+        {
+            removingId = null;
+        }
+    }
+
+    private void OnShortlistChanged()
+    {
+        if (!disposed)
+        {
+            _ = InvokeAsync(RefreshAsync);
+        }
+    }
+
+    public void Dispose()
+    {
+        disposed = true;
+        requestVersion++;
+        if (subscribed)
+        {
+            Shortlist.Changed -= OnShortlistChanged;
+        }
+    }
+}
