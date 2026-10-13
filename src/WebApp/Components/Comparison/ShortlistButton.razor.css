@@ -1,0 +1,35 @@
+.shortlist-control {
+    padding-top: 0.75rem;
+}
+
+.shortlist-button {
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font: inherit;
+    cursor: pointer;
+}
+
+.shortlist-button[aria-pressed="true"] {
+    border-color: var(--color-ink);
+    font-weight: 700;
+}
+
+.shortlist-button:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+}
+
+.shortlist-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.shortlist-feedback {
+    margin: 0.4rem 0 0;
+    color: var(--color-ink);
+    font-size: 0.875rem;
+}

@@ -1,0 +1,107 @@
+@using eShop.WebAppComponents.Services
+@implements IDisposable
+@inject ProductShortlist Shortlist
+@inject ILogger<ShortlistButton> Logger
+
+<div class="shortlist-control">
+    <button type="button"
+            class="shortlist-button"
+            aria-pressed="@(IsSelected ? "true" : "false")"
+            aria-label="@(IsSelected ? $"Remove {ProductName} from shortlist" : $"Add {ProductName} to shortlist")"
+            disabled="@(!Shortlist.IsInitialized || busy)"
+            @onclick="ChangeSelectionAsync">
+        @(IsSelected ? "Selected - remove" : "Shortlist to compare")
+    </button>
+    <p class="shortlist-feedback" role="status" aria-live="polite">@(message ?? Shortlist.RecoveryMessage)</p>
+    @if (!Shortlist.IsInitialized && message is not null)
+    {
+        <button type="button" class="shortlist-button" disabled="@busy" @onclick="InitializeAsync">Retry shortlist</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public int ProductId { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string ProductName { get; set; }
+
+    private bool busy;
+    private bool disposed;
+    private string? message;
+    private bool IsSelected => Shortlist.SelectedIds.Contains(ProductId);
+
+    protected override void OnInitialized() => Shortlist.Changed += OnShortlistChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeAsync();
+        }
+    }
+
+    private async Task InitializeAsync()
+    {
+        busy = true;
+        message = null;
+        try
+        {
+            await Shortlist.InitializeAsync();
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Could not load the product shortlist from browser session storage.");
+            message = "Your shortlist could not be loaded. Allow browser session storage and retry.";
+        }
+        finally
+        {
+            busy = false;
+            if (!disposed)
+            {
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task ChangeSelectionAsync()
+    {
+        busy = true;
+        message = null;
+        try
+        {
+            var result = await Shortlist.SetSelectedAsync(ProductId, !IsSelected);
+            message = result switch
+            {
+                ShortlistChange.LimitReached => "You can shortlist up to three products. Remove one before adding another. Your selections have not changed.",
+                ShortlistChange.Added => $"{ProductName} added. {Shortlist.SelectedIds.Count} of three products selected.",
+                ShortlistChange.Removed => $"{ProductName} removed. {Shortlist.SelectedIds.Count} of three products selected.",
+                _ => null
+            };
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Could not save the product shortlist to browser session storage.");
+            message = "Your shortlist could not be saved. Your selections have not changed. Allow browser session storage and try again.";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void OnShortlistChanged()
+    {
+        message = null;
+        if (!disposed)
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        disposed = true;
+        Shortlist.Changed -= OnShortlistChanged;
+    }
+}

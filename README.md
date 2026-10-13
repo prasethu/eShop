@@ -91,6 +91,20 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
+### Product shortlist
+
+On the storefront catalog, use **Shortlist to compare** to select up to three
+different products without signing in. Selected products show **Selected - remove**;
+remove one to make room for another. Attempting to add a fourth preserves the
+existing selections and displays an explanation.
+
+Selections are stored in browser session storage for the current tab and survive
+catalog navigation and reloads. Browser session storage must be available; failures
+are reported rather than presenting unsaved selections as successful.
+
+The shortlist tray, side-by-side comparison, and budget checks are planned for
+subsequent milestones and are not available yet.
+
 ### Optional: AI Chatbot with Microsoft Foundry
 
 This option provisions a Microsoft Foundry resource during local development, so first authenticate to Azure and configure the subscription and location:

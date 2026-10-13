@@ -18,6 +18,7 @@
             <span class='price'>$@Item.Price.ToPriceDisplay()</span>
         </span>
     </a>
+    @ChildContent
 </div>
 
 @code {
@@ -26,4 +27,7 @@
 
     [Parameter]
     public bool IsLoggedIn { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
 }
