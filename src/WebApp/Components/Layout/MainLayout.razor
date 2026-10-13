@@ -1,7 +1,9 @@
 @inherits LayoutComponentBase
 @using eShop.WebApp.Components.Chatbot
+@using eShop.WebApp.Components.Comparison
 
 <HeaderBar />
+<ShortlistTray @rendermode="InteractiveServer" />
 <main class="eshop-main">
     @Body
 </main>

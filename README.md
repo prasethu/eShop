@@ -91,6 +91,44 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
+### Product shortlist
+
+On the storefront catalog, use **Shortlist to compare** to select up to three
+different products without signing in. Selected products show **Selected - remove**;
+remove one to make room for another. Attempting to add a fourth preserves the
+existing selections and displays an explanation.
+
+Selections are stored in browser session storage for the current tab and survive
+catalog navigation and reloads. Browser session storage must be available; failures
+are reported rather than presenting unsaved selections as successful.
+
+The **Your shortlist** tray appears below the page header throughout the storefront.
+It shows selected product names in selection order, a count, removal controls, and
+guidance about how many products are needed to compare. Use the product links to
+open details; changing pages or filters does not remove hidden selections. Removing
+a product in the tray also updates its visible catalog selection button. If product
+information cannot be loaded, the tray preserves selections and offers a retry.
+
+With two or three selections, use **Compare products** in the tray to open
+`/compare`. The comparison shows photos, names, brands, and prices in selection
+order. Missing products or information are explicitly labeled; failed image loads
+show **Photo unavailable**. With fewer than two selections, the page explains what
+to select next. The comparison table scrolls horizontally on narrow screens and
+can be focused with the keyboard. **Back to catalog** preserves catalog filters
+and pagination when the comparison was opened from a filtered catalog page.
+
+Enter an optional **Budget per product ($)** on the comparison page. Results update
+as you type, showing **Within budget** (including prices exactly equal to the
+budget) or **Over budget**, together with the amount under or over. This is an
+individual-product budget, not a combined total.
+
+Use a non-negative dollar amount with at most two decimal places, such as `100`
+or `100.50`; zero is valid. Invalid entries show an explanation and hide prior
+budget results rather than displaying stale affordability. Clearing the input
+removes the budget comparison. Products with unavailable or invalid prices cannot
+be classified as affordable. The budget is local to the current comparison page;
+only shortlist selections persist across navigation and reloads.
+
 ### Optional: AI Chatbot with Microsoft Foundry
 
 This option provisions a Microsoft Foundry resource during local development, so first authenticate to Azure and configure the subscription and location:

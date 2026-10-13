@@ -1,0 +1,17 @@
+@page "/compare"
+@using eShop.WebApp.Components.Comparison
+@inject NavigationManager Nav
+
+<PageTitle>Compare products | AdventureWorks</PageTitle>
+<SectionContent SectionName="page-header-title">Compare your adventure gear</SectionContent>
+<SectionContent SectionName="page-header-subtitle">See your shortlisted products side by side.</SectionContent>
+
+<a class="compare-back" href="@BackHref">Back to catalog</a>
+<ComparisonPanel @rendermode="InteractiveServer" />
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    private string BackHref => CatalogNavigation.GetReturnPath(Nav.BaseUri, HttpContext?.Request.Headers.Referer.ToString());
+}

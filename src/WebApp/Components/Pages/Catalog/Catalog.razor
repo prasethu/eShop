@@ -2,6 +2,7 @@
 @inject NavigationManager Nav
 @inject CatalogService CatalogService
 @attribute [StreamRendering]
+@using eShop.WebApp.Components.Comparison
 
 <PageTitle>AdventureWorks</PageTitle>
 <SectionContent SectionName="page-header-title">Ready for a new adventure?</SectionContent>
@@ -85,7 +86,9 @@
             <div class="catalog-items">
                 @foreach (var item in catalogResult.Data)
                 {
-                    <CatalogListItem Item="@item" />
+                    <CatalogListItem Item="@item">
+                        <ShortlistButton ProductId="@item.Id" ProductName="@item.Name" @rendermode="InteractiveServer" />
+                    </CatalogListItem>
                 }
             </div>
 

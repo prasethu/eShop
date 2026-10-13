@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Text.Json;
 using System.Web;
 using eShop.WebAppComponents.Catalog;
 
@@ -23,10 +24,19 @@ public class CatalogService(HttpClient httpClient) : ICatalogService
 
     public async Task<List<CatalogItem>> GetCatalogItems(IEnumerable<int> ids)
     {
-        var uri = $"{remoteServiceBaseUrl}items/by?ids={string.Join("&ids=", ids)}";
+        var uri = GetItemsByIdsUri(ids);
         var result = await httpClient.GetFromJsonAsync<List<CatalogItem>>(uri);
         return result!;
     }
+
+    public async Task<List<ComparisonItem>> GetComparisonItems(IEnumerable<int> ids)
+    {
+        var result = await httpClient.GetFromJsonAsync<List<ComparisonItem>>(GetItemsByIdsUri(ids));
+        return result ?? throw new JsonException("The catalog returned no product collection for comparison.");
+    }
+
+    private string GetItemsByIdsUri(IEnumerable<int> ids) =>
+        $"{remoteServiceBaseUrl}items/by?ids={string.Join("&ids=", ids)}";
 
     public Task<CatalogResult> GetCatalogItemsWithSemanticRelevance(int page, int take, string text)
     {

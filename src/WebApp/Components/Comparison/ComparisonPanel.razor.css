@@ -1,0 +1,112 @@
+.comparison-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+}
+
+.comparison-scroll:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+    color: var(--color-ink);
+}
+
+.comparison-table caption {
+    padding: 1rem;
+    font-weight: 700;
+    text-align: left;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: 1rem;
+    border-top: 1px solid var(--color-line);
+    border-right: 1px solid var(--color-line);
+    text-align: left;
+    vertical-align: top;
+}
+
+.comparison-table th:first-child {
+    min-width: 5rem;
+    background: var(--color-surface-2);
+}
+
+.comparison-table th:not(:first-child),
+.comparison-table td {
+    min-width: 12rem;
+    max-width: 20rem;
+    overflow-wrap: anywhere;
+}
+
+.comparison-table img {
+    display: block;
+    width: 100%;
+    max-width: 16rem;
+    height: 12rem;
+    object-fit: contain;
+}
+
+.comparison-table a:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+}
+
+.comparison-missing {
+    font-size: var(--text-sm);
+    font-weight: 400;
+}
+
+.product-budget {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
+}
+
+.product-budget label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.product-budget input {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 16rem;
+    padding: 0.65rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font: inherit;
+}
+
+.product-budget input:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+}
+
+.product-budget input[aria-invalid="true"] {
+    border-width: 2px;
+}
+
+.product-budget p {
+    margin: 0.5rem 0 0;
+    font-size: var(--text-sm);
+}
+
+.budget-error {
+    font-weight: 700;
+}
+
+.budget-difference {
+    display: block;
+    margin-top: 0.25rem;
+}
