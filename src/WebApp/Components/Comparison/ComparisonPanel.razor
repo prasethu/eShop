@@ -1,0 +1,208 @@
+@using System.Text.Json
+@implements IDisposable
+@inject ProductShortlist Shortlist
+@inject ShortlistCatalog Catalog
+@inject IProductImageUrlProvider ProductImages
+@inject ILogger<ComparisonPanel> Logger
+
+@if (!Shortlist.IsInitialized)
+{
+    <p role="status">@(message ?? "Loading your selections...")</p>
+    @if (message is not null)
+    {
+        <button type="button" class="button button-primary" @onclick="InitializeAsync">Retry selections</button>
+    }
+}
+else if (!Shortlist.CanCompare)
+{
+    <p role="status">@(Shortlist.SelectedIds.Count == 0
+        ? "Select two or three products from the catalog to compare them."
+        : "Select one more product from the catalog to start comparing.")</p>
+    <a href="">Browse products</a>
+}
+else if (loading)
+{
+    <p role="status">Loading product comparison...</p>
+}
+else if (message is not null)
+{
+    <p role="alert">@message</p>
+    <button type="button" class="button button-primary" @onclick="RefreshAsync">Retry comparison</button>
+}
+else
+{
+    <div class="comparison-scroll" role="region" aria-label="Product comparison" tabindex="0">
+        <table class="comparison-table">
+            <caption>Compare @products.Count selected products</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Details</th>
+                    @foreach (var product in products)
+                    {
+                        <th scope="col" @key="product.Id">
+                            @if (product.Item is not null)
+                            {
+                                <a href="item/@product.Id" data-enhance-nav="false">@product.DisplayName</a>
+                            }
+                            else
+                            {
+                                <span>Product @product.Id unavailable</span>
+                                <p class="comparison-missing">Remove this selection using the shortlist above, or choose another product.</p>
+                            }
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">Photo</th>
+                    @foreach (var product in products)
+                    {
+                        <td @key="product.Id">
+                            @if (product.Item is not null && !failedImages.Contains(product.Id))
+                            {
+                                <img src="@ProductImages.GetProductImageUrl(product.Id)" alt="@product.DisplayName"
+                                     @onerror="() => MarkImageUnavailable(product.Id)" />
+                            }
+                            else
+                            {
+                                <span class="comparison-missing">Photo unavailable</span>
+                            }
+                        </td>
+                    }
+                </tr>
+                <tr>
+                    <th scope="row">Brand</th>
+                    @foreach (var product in products)
+                    {
+                        <td @key="product.Id">@product.BrandDisplay</td>
+                    }
+                </tr>
+                <tr>
+                    <th scope="row">Price</th>
+                    @foreach (var product in products)
+                    {
+                        <td @key="product.Id">@product.PriceDisplay</td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<ComparedProduct> products = Array.Empty<ComparedProduct>();
+    private readonly HashSet<int> failedImages = [];
+    private bool loading = true;
+    private bool subscribed;
+    private bool disposed;
+    private int requestVersion;
+    private string? message;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeAsync();
+        }
+    }
+
+    private async Task InitializeAsync()
+    {
+        message = null;
+        try
+        {
+            await Shortlist.InitializeAsync();
+            if (!disposed && !subscribed)
+            {
+                Shortlist.Changed += OnShortlistChanged;
+                subscribed = true;
+            }
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Could not restore selections for product comparison.");
+            message = "Your selections could not be loaded. Allow browser session storage and retry.";
+        }
+
+        if (!disposed)
+        {
+            if (Shortlist.IsInitialized)
+            {
+                await RefreshAsync();
+            }
+            else
+            {
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        var version = ++requestVersion;
+        var ids = Shortlist.SelectedIds.ToArray();
+        loading = true;
+        message = null;
+        StateHasChanged();
+        try
+        {
+            var result = await Catalog.GetComparisonAsync(ids);
+            if (!disposed && version == requestVersion && ids.SequenceEqual(Shortlist.SelectedIds))
+            {
+                products = result;
+                failedImages.Clear();
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            ReportLoadFailure(ex, version);
+        }
+        catch (JsonException ex)
+        {
+            ReportLoadFailure(ex, version);
+        }
+        finally
+        {
+            if (!disposed && version == requestVersion)
+            {
+                loading = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void ReportLoadFailure(Exception ex, int version)
+    {
+        Logger.LogError(ex, "Could not load the product comparison.");
+        if (!disposed && version == requestVersion)
+        {
+            message = "The comparison could not be loaded. Your selections are preserved. Please retry.";
+        }
+    }
+
+    private void MarkImageUnavailable(int id) => failedImages.Add(id);
+
+    private void OnShortlistChanged()
+    {
+        if (!disposed)
+        {
+            _ = InvokeAsync(RefreshAsync);
+        }
+    }
+
+    public void Dispose()
+    {
+        disposed = true;
+        requestVersion++;
+        if (subscribed)
+        {
+            Shortlist.Changed -= OnShortlistChanged;
+        }
+    }
+}

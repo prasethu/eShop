@@ -59,10 +59,14 @@
                     <text>Select at least one more product for a side-by-side comparison.</text>
                     break;
                 default:
-                    <text>You have enough products for a side-by-side comparison. The comparison view is coming next.</text>
+                    <text>Your shortlist is ready for a side-by-side comparison.</text>
                     break;
             }
         </p>
+        @if (Shortlist.CanCompare)
+        {
+            <a class="shortlist-compare" href="compare" data-enhance-nav="false">Compare products</a>
+        }
         <p class="shortlist-feedback" role="status" aria-live="polite">@(message ?? Shortlist.RecoveryMessage)</p>
         @if (loadFailed)
         {

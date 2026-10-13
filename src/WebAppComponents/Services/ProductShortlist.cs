@@ -22,6 +22,7 @@ public sealed class ProductShortlist(IJSRuntime js, ILogger<ProductShortlist> lo
 
     public IReadOnlyList<int> SelectedIds => selectedIds;
     public bool IsInitialized { get; private set; }
+    public bool CanCompare => IsInitialized && selectedIds.Count >= 2;
     public string? RecoveryMessage { get; private set; }
     public event Action? Changed;
 

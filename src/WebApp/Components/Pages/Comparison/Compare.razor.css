@@ -1,0 +1,10 @@
+.compare-back {
+    display: inline-block;
+    margin: 0 0 1rem;
+    font-weight: 600;
+}
+
+.compare-back:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+}

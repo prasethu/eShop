@@ -204,6 +204,35 @@ public sealed class ProductShortlistTests
         new(storage, NullLogger<ProductShortlist>.Instance);
 
     [TestMethod]
+    [DataRow("[]", false)]
+    [DataRow("[12]", false)]
+    [DataRow("[12,34]", true)]
+    [DataRow("[12,34,56]", true)]
+    public async Task CanCompare_RestoredSelection_RequiresAtLeastTwoProducts(string saved, bool expected)
+    {
+        using var shortlist = CreateShortlist(new SessionStorageFake { Stored = saved });
+        Assert.IsFalse(shortlist.CanCompare);
+
+        await shortlist.InitializeAsync();
+
+        Assert.AreEqual(expected, shortlist.CanCompare);
+    }
+
+    [TestMethod]
+    public async Task CanCompare_TrayRemovalAndReplacement_UpdatesImmediately()
+    {
+        using var shortlist = CreateShortlist(new SessionStorageFake { Stored = "[12,34]" });
+        await shortlist.InitializeAsync();
+        Assert.IsTrue(shortlist.CanCompare);
+
+        await shortlist.SetSelectedAsync(34, false);
+        Assert.IsFalse(shortlist.CanCompare);
+
+        await shortlist.SetSelectedAsync(56, true);
+        Assert.IsTrue(shortlist.CanCompare);
+    }
+
+    [TestMethod]
     public async Task SetSelectedAsync_TrayRemoval_RestoresRemainingSelectionsAfterNavigation()
     {
         var storage = new SessionStorageFake { Stored = "[12,34,56]" };

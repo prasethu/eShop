@@ -109,8 +109,15 @@ open details; changing pages or filters does not remove hidden selections. Remov
 a product in the tray also updates its visible catalog selection button. If product
 information cannot be loaded, the tray preserves selections and offers a retry.
 
-Side-by-side comparison and budget checks are planned for subsequent milestones
-and are not available yet.
+With two or three selections, use **Compare products** in the tray to open
+`/compare`. The comparison shows photos, names, brands, and prices in selection
+order. Missing products or information are explicitly labeled; failed image loads
+show **Photo unavailable**. With fewer than two selections, the page explains what
+to select next. The comparison table scrolls horizontally on narrow screens and
+can be focused with the keyboard. **Back to catalog** preserves catalog filters
+and pagination when the comparison was opened from a filtered catalog page.
+
+Budget checks are planned for the next milestone and are not available yet.
 
 ### Optional: AI Chatbot with Microsoft Foundry
 

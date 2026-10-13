@@ -66,6 +66,7 @@
 }
 
 .shortlist-action:focus-visible,
+.shortlist-compare:focus-visible,
 .shortlist-product-name a:focus-visible {
     outline: 3px solid var(--color-ink);
     outline-offset: 3px;
@@ -75,4 +76,10 @@
 .shortlist-feedback {
     margin: 0.5rem 0 0;
     font-size: var(--text-sm);
+}
+
+.shortlist-compare {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-weight: 700;
 }

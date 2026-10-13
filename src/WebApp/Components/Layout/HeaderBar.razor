@@ -42,6 +42,7 @@
     // Pages whose content should sit near the top under a shorter hero band.
     private bool IsCompactHero =>
         IsItemPage
+        || PageComponentType == typeof(Pages.Comparison.Compare)
         || PageComponentType == typeof(Pages.Cart.CartPage)
         || PageComponentType == typeof(Pages.User.Orders)
         || PageComponentType == typeof(Pages.Checkout.Checkout);
