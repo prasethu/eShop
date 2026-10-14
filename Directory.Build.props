@@ -3,6 +3,8 @@
   <PropertyGroup>
     <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1801;NU1900</WarningsNotAsErrors>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
